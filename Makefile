@@ -78,6 +78,7 @@ asan:
 	./build-asan/disksim --quiet --workload seq --requests 300 --rate 0 --size 128 --defects 2000 --plist 500 --sched sptf
 	./build-asan/disksim --quiet --workload random --requests 500 --sched scan
 	./build-asan/disksim --quiet --workload hotcold --requests 500 --sched cscan --qdepth 32
+	./build-asan/disksim --quiet --trace traces/sample_trace.csv --sched sptf-aged --defects 100
 	./build-asan/disksim --quiet --workload random --requests 300 --no-zoned --sector-size 4096 --sched clook
 	@echo "asan: all tests and simulations clean"
 
