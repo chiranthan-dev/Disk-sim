@@ -27,6 +27,41 @@ Full tables are in [`results/results.md`](results/results.md).
 | Zoned recording | sequential **77.56 MB/s** at the outer edge vs **41.49 MB/s** at the inner edge |
 | Cylinder skew | sequential **77.55 MB/s** with skew vs **63.91 MB/s** without (-17.6%) |
 
+## Examples (real screenshots)
+
+Every screenshot below is a real terminal window (WSL Ubuntu) running the
+command shown, captured from this repository's build.
+
+**Drive geometry**: 16 recording zones, outer zones hold more sectors per track.
+
+![disksim --info](docs/screenshots/01_info.png)
+
+**Unit tests**: 435 checks against hand-calculated expectations.
+
+![make test](docs/screenshots/02_make_test.png)
+
+**One simulation**: random 4 KiB reads arriving at 120 IOPS, served by SPTF.
+
+![random workload with SPTF](docs/screenshots/03_random_sptf.png)
+
+**NCQ in action**: with 32 commands queued, SPTF does 2.36x the IOPS of FCFS by
+cutting both seek and rotational latency.
+
+![FCFS vs SPTF at queue depth 32](docs/screenshots/04_ncq_fcfs_vs_sptf.png)
+
+**Grown defects**: 20,000 reallocated sectors drop sequential throughput from
+77.55 to 44.94 MB/s; 76 reads had to detour to the spare area.
+
+![sequential read with and without grown defects](docs/screenshots/05_grown_defects.png)
+
+**Trace replay**: the CSV trace format and a run of SPTF with a 500 ms aging limit.
+
+![trace replay](docs/screenshots/06_trace_replay.png)
+
+**Sanitizers**: tests and five full simulations under AddressSanitizer + UBSan.
+
+![make asan](docs/screenshots/07_make_asan.png)
+
 ## Architecture
 
 ```mermaid
@@ -78,7 +113,7 @@ make            # build/libdisksim.a, build/disksim, build/gen_trace
 ```
 
 ```bash
-make test       # unit tests (434 checks)
+make test       # unit tests (435 checks)
 ```
 
 ```bash
@@ -313,6 +348,7 @@ tools/gen_trace.c     synthetic trace generator
 traces/               sample trace
 bench/                run_bench.sh, plot.py
 results/              results.csv, results.md, charts (from make bench)
+docs/screenshots/     real terminal screenshots used in this README
 LEARNING.md           guided walkthrough of the concepts and the code
 INTERVIEW.md          25 interview questions with model answers
 ```

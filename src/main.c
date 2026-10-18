@@ -4,6 +4,8 @@
  * Argument parsing is hand-written (no getopt) so the program stays plain
  * C11 with no POSIX dependency.
  */
+#include <ctype.h>
+#include <errno.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,10 +60,13 @@ static void usage(FILE *f)
 static int parse_u64(const char *s, unsigned long long *out)
 {
     char *end;
-    if (!s || !*s || *s == '-')
+    /* strtoull would accept " 12", "+12" and even "-1" (wrapping to a huge
+     * value), so insist on a leading digit. */
+    if (!s || !isdigit((unsigned char)*s))
         return -1;
+    errno = 0;
     *out = strtoull(s, &end, 10);
-    return *end ? -1 : 0;
+    return (*end || errno) ? -1 : 0;
 }
 
 static int parse_dbl(const char *s, double *out)
@@ -172,7 +177,7 @@ int main(int argc, char **argv)
         else if (OPT("--skew")) bad = parse_dbl(v, &cfg.cyl_skew);
         else if (OPT("--spare-cyls")) { bad = parse_u64(v, &u) || u > UINT32_MAX; cfg.spare_cylinders = (uint32_t)u; }
         else if (OPT("--csv")) csv_path = v;
-        else if (OPT("--tag")) tag = v;
+        else if (OPT("--tag")) { tag = v; bad = strpbrk(v, ",\n") != NULL; }
         else if (OPT("--per-request")) per_req_path = v;
         else if (OPT("--dump-trace")) dump_path = v;
         else {
@@ -252,10 +257,18 @@ int main(int argc, char **argv)
     }
 
     const char *wl_name = workload_kind_name(wc.kind);
+
+    /* --rate only drives the generators. For a trace, report the trace's
+     * own mean arrival rate instead of the unused default. */
+    double rate_shown = wc.rate_iops;
+    if (wc.kind == WL_TRACE) {
+        double span_ms = reqs[n - 1].arrival_ms - reqs[0].arrival_ms;
+        rate_shown = (n > 1 && span_ms > 0.0) ? (double)(n - 1) / (span_ms / 1000.0) : 0.0;
+    }
     if (!quiet) {
         printf("disksim: workload=%s sched=%s requests=%zu rate=%.1f IOPS qdepth=%zu "
                "grown_defects=%llu plist=%llu\n",
-               wl_name, scheduler_name(sc.policy), n, wc.rate_iops, sc.queue_depth,
+               wl_name, scheduler_name(sc.policy), n, rate_shown, sc.queue_depth,
                grown, plist_n);
         metrics_print(stdout, &m);
     }
@@ -276,7 +289,7 @@ int main(int argc, char **argv)
             if (need_header)
                 metrics_csv_header(f);
             metrics_csv_row(f, tag, wl_name, scheduler_name(sc.policy), (uint32_t)grown,
-                            (uint32_t)plist_n, sc.queue_depth, wc.rate_iops, &m);
+                            (uint32_t)plist_n, sc.queue_depth, rate_shown, &m);
             fclose(f);
         }
     }

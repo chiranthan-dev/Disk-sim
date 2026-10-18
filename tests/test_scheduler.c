@@ -243,6 +243,10 @@ static double starvation_run(sched_policy_t p, double age, int *served_last)
         make_req(&r[i], (uint64_t)i, (double)(i - 1), LBA(1, (i * 37) % 100));
 
     disk_t *d = open_disk();
+    if (!d) {
+        free(r);
+        return -1.0;
+    }
     sim_config_t sc;
     sim_config_default(&sc);
     sc.policy = p;
@@ -299,6 +303,9 @@ static void idle_gaps(void)
     make_req(&r[1], 1, 100.0, LBA(80, 0));
     make_req(&r[2], 2, 200.0, LBA(5, 0));
     disk_t *d = open_disk();
+    CHECK(d != NULL);
+    if (!d)
+        return;
     sim_config_t sc;
     sim_config_default(&sc);
     sc.policy = SCHED_SPTF;

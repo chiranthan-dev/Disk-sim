@@ -73,7 +73,8 @@ int workload_build(const workload_config_t *wc, uint64_t capacity,
     }
     if (wc->start_frac < 0.0 || wc->start_frac >= 1.0 ||
         wc->hot_frac <= 0.0 || wc->hot_frac >= 1.0 ||
-        wc->hot_prob < 0.0 || wc->hot_prob > 1.0) {
+        wc->hot_prob < 0.0 || wc->hot_prob > 1.0 ||
+        wc->write_frac < 0.0 || wc->write_frac > 1.0) {
         set_err(err, errlen, "workload fractions out of range");
         return -1;
     }

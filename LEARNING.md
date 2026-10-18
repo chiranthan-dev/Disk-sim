@@ -400,7 +400,7 @@ runs full simulations, not just unit tests.
 > of grown defects cost sequential reads 42% of their throughput but didn't
 > affect random reads. And I found that adding a too-aggressive starvation
 > limit to SPTF made it collapse into FCFS under bursty load. It's a static
-> library with a clean API, 434 unit-test checks against hand calculations,
+> library with a clean API, 435 unit-test checks against hand calculations,
 > and it's clean under AddressSanitizer."
 
 ### 5 minutes
@@ -462,7 +462,7 @@ All numbers are from `results/results.md`. Pick one or two.
 - Analysed scheduler starvation via max-wait metrics; showed SPTF aging cut
   worst-case wait 31% (729 to 505 ms) at equal mean latency, and identified a
   failure mode where a too-short limit degrades SPTF to FCFS under bursty load
-  (2,076 vs 67 ms). 434 unit-test checks; clean under -Werror, ASan and UBSan.
+  (2,076 vs 67 ms). 435 unit-test checks; clean under -Werror, ASan and UBSan.
 
 ---
 

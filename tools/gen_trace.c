@@ -25,10 +25,23 @@ int main(int argc, char **argv)
         fprintf(stderr, "usage: %s OUT.csv [requests] [seed]\n", argv[0]);
         return 2;
     }
-    size_t n = argc > 2 ? (size_t)strtoull(argv[2], NULL, 10) : 5000;
-    uint64_t seed = argc > 3 ? strtoull(argv[3], NULL, 10) : 2024;
-    if (n == 0)
-        return 2;
+    char *end = NULL;
+    size_t n = 5000;
+    uint64_t seed = 2024;
+    if (argc > 2) {
+        n = (size_t)strtoull(argv[2], &end, 10);
+        if (*end || n == 0) {
+            fprintf(stderr, "gen_trace: bad request count '%s'\n", argv[2]);
+            return 2;
+        }
+    }
+    if (argc > 3) {
+        seed = strtoull(argv[3], &end, 10);
+        if (*end) {
+            fprintf(stderr, "gen_trace: bad seed '%s'\n", argv[3]);
+            return 2;
+        }
+    }
 
     /* Generate LBAs that fit the default drive. */
     disk_config_t cfg;
@@ -72,6 +85,8 @@ int main(int argc, char **argv)
         r[i].arrival_ms = t;
         if (u < 0.60) {                      /* sequential stream chunk */
             int s = (int)rng_below(&rng, STREAMS);
+            if (stream_pos[s] + 128 > cap)   /* long traces: wrap the file */
+                stream_pos[s] = 0;
             r[i].lba = stream_pos[s];
             r[i].count = 128;
             r[i].op = DISK_OP_READ;

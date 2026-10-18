@@ -254,7 +254,7 @@ angle 0.25, the sector is at 0.5, so 2.5 ms rotation, plus 1.0 ms transfer =
 cover track and cylinder crossings with and without skew, a missed revolution,
 zone transfer rates, P-list slip cost and the remap round trip. The scheduler
 tests use hand-computed service orders and head movement for every policy.
-434 checks in total.
+435 checks in total.
 
 ### 25. What are the limitations, and what would you add next?
 
